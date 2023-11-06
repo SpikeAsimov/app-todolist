@@ -1,35 +1,30 @@
-const db = require("../models");
-const Task = db.tasks;
-const Op = db.Sequelize.Op;
+const Task = require("../models/task.model.js");
+
 
 exports.create = (req, res) => {
     //Validate request
-    if (!req.body.title) {
+    if (!req.body) {
         res.status(400).send({
             message: "Content can not be empty!"
-        });            
-        return;
+        });                    
     }
 
     //Create Task
-    const task = {
+    const task = new Task({
         title: req.body.title,
         description: req.body.description,
-        completed: req.body.completed ? req.body.completed : false
-    };
+        completed: req.body.completed || false
+    });
 
     //Save Task
-    Task.create(task)
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                    err.message || "Some error occurred while creating the Task."
-            });
-        });
-
+    Task.create(task, (err, data) =>{
+        if (err)
+        res.status(500).send({
+            message:
+            err.message || "Some error occurred while creating the Task."
+    });
+    else res.send(data);
+    });
 };
 
 exports.update = (req, res) => {
@@ -56,24 +51,19 @@ exports.update = (req, res) => {
         });
 };
 
-//Find
+//Retrieve all Tasks from the database (with condition)
 
 exports.findAll = (req, res) => {
+    const title = req.query.title;
     
-        const title = req.query.title;
-        var condition = title ? { title: { [Op.like]: `%&{title}%` } } : null;
-
-        Task.findAll({ where: condition })
-            .then(data => {
-                res.send(data);
-            })
-            .catch(err => {
-                res.status(500).send({
-                    message:
-                        err.message || 'Some error occurred while retrieving tasks.'
-                });
-            });   
-    
+    Task.getAll(title, (err, data) => {
+        if (err)
+            res.status(500).send({
+                message:
+                    err.message || "Some error occurred while retrieving tasks."
+        });
+        else res.send(data);
+    });
 };
 
 exports.findOne = (req, res) => {
@@ -142,13 +132,13 @@ exports.deleteAll = (req, res) => {
 };
 
 exports.findAllCompleted = (req, res) => {
-    Task.findAll({ where: { completed: true }})
-        .then(data => {
-            res.send(data);
-        })
-        .catch(err => {
-            message:
-                err.message || "Some error occurred while retrieving task"
+    Task.getAllCompleted((err, data) => {
+        if (err)
+            res.status(500).send({
+                message:
+                    err.message || "Some error occurred while retrieving tasks."
         });
+        else res.send(data);
+    });
 };
 
