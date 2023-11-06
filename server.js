@@ -15,8 +15,10 @@ const db = require("./models");
 db.sequelize.sync();
 
 app.get("/", (req, res) => {
-    res.json({ message: "App - To Do List"});
+    res.json({ message: "App || To Do List"});
 });
+
+require("./routes/task.routes")(app);
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, ()=> {
