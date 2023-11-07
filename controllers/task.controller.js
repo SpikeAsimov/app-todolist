@@ -1,6 +1,7 @@
 const Task = require("../models/task.model.js");
 
 
+//Create and Save new Task
 exports.create = (req, res) => {
     //Validate request
     if (!req.body) {
@@ -16,43 +17,23 @@ exports.create = (req, res) => {
         completed: req.body.completed || false
     });
 
+    console.log("Objeto task:", task);
+
+
     //Save Task
-    Task.create(task, (err, data) =>{
-        if (err)
+    Task.create(task, (err, data) => {
+        console.log("Objeto task 2:", task);
+
+        if (err)        
         res.status(500).send({
             message:
             err.message || "Some error occurred while creating the Task."
-    });
-    else res.send(data);
-    });
-};
-
-exports.update = (req, res) => {
-    const id = req.params.id;
-
-    Task.update(req.body, {
-        where: { id: id }
-    })
-        .then(num => {
-            if (num == 1){
-                res.send({
-                    message: "Task was update successfully"
-                });
-            } else {
-                res.send({
-                    message: `Cannot update Task with id=${id}. Maybe Task was not found`
-                });
-            }
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Error updating Task with id=" + id
-            });
         });
+        else res.send(data);
+    });
 };
 
 //Retrieve all Tasks from the database (with condition)
-
 exports.findAll = (req, res) => {
     const title = req.query.title;
     
@@ -66,71 +47,25 @@ exports.findAll = (req, res) => {
     });
 };
 
+
+//Find a single Task with a id
 exports.findOne = (req, res) => {
-    const id = req.params.id;
-    
-    Task.findByPk(id)
-        .then( data => {
-            if (data) {
-                res.send(data);
-            } else {
+    Task.findById(req.params.id, (err, data) => {
+        if(err) {
+            if (err.kind === "not_found") {
                 res.status(404).send({
-                    message: `Cannot find Task with id= ${id}.`
+                    message: `Not found Task with id ${req.params.id}.`
+                });
+            }else {
+                res.status(500).send({
+                    message: "Error retrieving Task with id " + req.params.id
                 });
             }
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Error retrieving Task with id=" + id
-            });
-        });
-
+        } else res.send(data);
+    });
 };
 
-
-
-//Delete
-
-exports.delete = (req, res) => {
-
-    const id = req.params.id;
-    Task.destroy({
-        where: { id: id}
-    })
-        .then(num => {
-            if(num ==1) {
-                res.send({
-                    message: "Task was deleted successfully!"
-                });
-            } else {
-                res.send({
-                    message: `Cannot delete Task with id=${id}. Maybe Task was not found`
-                });
-            }
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Could not delete Task with id=" + id
-            });
-        });
-};
-
-exports.deleteAll = (req, res) => {
-    Task.destroy({
-        where: {},
-        truncate: false
-    })
-        .then(nums => {
-            res.send({ message: `${nums} Tasks were deleted successfully!`});
-        })
-        .catch(err => {
-            res.status(500).send({
-                message:
-                    err.message || "Some error occurred while removing all tasks"
-            });
-        });
-};
-
+//Find all completed Tasks
 exports.findAllCompleted = (req, res) => {
     Task.getAllCompleted((err, data) => {
         if (err)
@@ -141,4 +76,64 @@ exports.findAllCompleted = (req, res) => {
         else res.send(data);
     });
 };
+
+//Update a Task identified by the id in the request
+exports.update = (req, res) => {
+    // Validate Request
+    if (!req.body) {
+      res.status(400).send({
+        message: "Content can not be empty!"
+      });
+    }
+  
+    console.log(req.body);
+  
+    Task.updateById(
+      req.params.id,
+      new Task(req.body),
+      (err, data) => {
+        if (err) {
+          if (err.kind === "not_found") {
+            res.status(404).send({
+              message: `Not found Task with id ${req.params.id}.`
+            });
+          } else {
+            res.status(500).send({
+              message: "Error updating Task with id " + req.params.id
+            });
+          }
+        } else res.send(data);
+      }
+    );
+  };
+
+//Delete a Task with the specified id in the request
+exports.delete = (req, res) => {
+    Task.remove(req.params.id, (err, data) => {
+        if (err) {
+            if (err.kind === "not_found") {
+                res.status(404).send({
+                    message: `Not found Task with id ${req.params.id}.`
+                });
+            } else {
+                res.status(500).send({
+                    message: "Could not delete Task with id " + req.params.id
+                });
+            }
+        } else res.send({ message: `Task was deleted successifully`});
+    });
+};
+
+//Delete all Tasks from the database
+exports.deleteAll = (req, res) => {
+    Task.removeAll((err, data) => {
+        if (err)
+            res.status(500).send({
+                message: 
+                    err.message || "Some error occurred while removing all tasks"
+        });
+        else res.send({ message: `All Tasks were deleted successfully`});
+    });
+};
+
 

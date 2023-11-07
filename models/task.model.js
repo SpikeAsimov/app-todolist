@@ -22,11 +22,12 @@ Task.create = (newTask, result) => {
 
 Task.findById = (id, result) => {
     sql.query(`SELECT * FROM tasks WHERE id = ${id}`, (err, res) => {
-        if(err) {
+        if (err) {
             console.log("error: ", err);
-            result(err, null);
+            result(null, err);
             return;
         }
+
         if (res.length) {
             console.log("found task:", res[0]);
             result(null, res[0]);
