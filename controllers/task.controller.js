@@ -1,139 +1,148 @@
-const Task = require("../models/task.model.js");
+const db = require("../models");
+const Task = db.tasks;
+const Op = db.Sequelize.Op;
 
-
-//Create and Save new Task
 exports.create = (req, res) => {
     //Validate request
-    if (!req.body) {
+    if (!req.body.title) {
         res.status(400).send({
-            message: "Content can not be empty!"
-        });                    
+            message: "Content can not be epmty!"
+        });
+        return;
     }
 
-    //Create Task
-    const task = new Task({
+    //Create a Task
+    const task = {
         title: req.body.title,
         description: req.body.description,
-        completed: req.body.completed || false
-    });
+        completed: req.body.completed ? req.body.completed: false
+    };
 
-    console.log("Objeto task:", task);
-
-
-    //Save Task
-    Task.create(task, (err, data) => {
-        console.log("Objeto task 2:", task);
-
-        if (err)        
-        res.status(500).send({
-            message:
-            err.message || "Some error occurred while creating the Task."
+    // Save Task in the database
+    Task.create(task)
+        .then(data => {
+            res.send(data);
+        })
+        .catch(err => {
+            res.status(500).send({
+                message:
+                    err.message || "Some error occurred while creating the Task,"
+                });
         });
-        else res.send(data);
-    });
+
 };
 
-//Retrieve all Tasks from the database (with condition)
 exports.findAll = (req, res) => {
     const title = req.query.title;
-    
-    Task.getAll(title, (err, data) => {
-        if (err)
+    var condition = title ? { title: { [Op.like]: `%${title}%` } } : null; 
+
+    Task.findAll( { where: condition })
+        .then(data => {
+            res.send(data);            
+        })
+        .catch(err => {
             res.status(500).send({
                 message:
-                    err.message || "Some error occurred while retrieving tasks."
+                    err.message || "Some error occured while retrieving tasks."
+            });
         });
-        else res.send(data);
-    });
 };
 
-
-//Find a single Task with a id
 exports.findOne = (req, res) => {
-    Task.findById(req.params.id, (err, data) => {
-        if(err) {
-            if (err.kind === "not_found") {
+    const id = req.params.id;
+
+    Task.findByPk(id)
+        .then(data => {
+            if (data) {
+                res.send(data);
+            } else {
                 res.status(404).send({
-                    message: `Not found Task with id ${req.params.id}.`
-                });
-            }else {
-                res.status(500).send({
-                    message: "Error retrieving Task with id " + req.params.id
+                    message: `Cannot find Task with =id${id}.`
                 });
             }
-        } else res.send(data);
-    });
-};
-
-//Find all completed Tasks
-exports.findAllCompleted = (req, res) => {
-    Task.getAllCompleted((err, data) => {
-        if (err)
+        })
+        .catch(err => {
             res.status(500).send({
-                message:
-                    err.message || "Some error occurred while retrieving tasks."
+                message: "Error retrieving Task with id=" + id
+            });
         });
-        else res.send(data);
-    });
-};
+}
 
-//Update a Task identified by the id in the request
 exports.update = (req, res) => {
-    // Validate Request
-    if (!req.body) {
-      res.status(400).send({
-        message: "Content can not be empty!"
-      });
-    }
-  
-    console.log(req.body);
-  
-    Task.updateById(
-      req.params.id,
-      new Task(req.body),
-      (err, data) => {
-        if (err) {
-          if (err.kind === "not_found") {
-            res.status(404).send({
-              message: `Not found Task with id ${req.params.id}.`
-            });
-          } else {
-            res.status(500).send({
-              message: "Error updating Task with id " + req.params.id
-            });
-          }
-        } else res.send(data);
-      }
-    );
-  };
+    const id = req.params.id;
 
-//Delete a Task with the specified id in the request
-exports.delete = (req, res) => {
-    Task.remove(req.params.id, (err, data) => {
-        if (err) {
-            if (err.kind === "not_found") {
-                res.status(404).send({
-                    message: `Not found Task with id ${req.params.id}.`
+    Task.update(req.body, {
+        where: { id: id }
+    })
+        .then(num => {
+            if(num == 1) {
+                res.send({
+                    message: "Task was update successfully"
                 });
             } else {
-                res.status(500).send({
-                    message: "Could not delete Task with id " + req.params.id
+                res.send({
+                    message: `Cannot update Task with id=${id}. Maybe Task was not found or req.body is empty!`
                 });
             }
-        } else res.send({ message: `Task was deleted successifully`});
-    });
-};
-
-//Delete all Tasks from the database
-exports.deleteAll = (req, res) => {
-    Task.removeAll((err, data) => {
-        if (err)
+        })
+       .catch(err => {
             res.status(500).send({
-                message: 
-                    err.message || "Some error occurred while removing all tasks"
+            message: "Error updating Task with id=" + id
+            });
         });
-        else res.send({ message: `All Tasks were deleted successfully`});
-    });
+
+};
+
+exports.delete = (req, res) => {
+    const id = req. params.id;
+
+    Task.destroy({
+        where: { id: id }
+    })
+        .then(num => {
+            if (num == 1) {
+                res.send({
+                    message: "Task was deleted successfully!"
+                });
+            } else {
+                res.send({
+                    message: `Cannot delete Task with id=${id}. Maybe Task was not found! `                    
+                });
+            }
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: "Could not delete Task with id=" + id
+            });
+        });
+};
+
+exports.deleteAll = (req, res) => {
+    Task.destroy({
+        where: {},
+        truncate: false
+    })
+        .then(num => {
+            res.send( { message: `${nums} Task were deleted successfully!`});
+        })
+        .catch(err => {
+            res.status(500).send({
+                message:
+                    err.message || "Some error occurred while removing all tasks."
+            });
+        });
 };
 
 
+exports.findAllCompleted = (req, res) => {
+    Task.findAll({ where: { completed: true } })
+        .then(data => {
+            res.send(data);
+        })
+        .catch(err => {
+            res.status(500).send({
+                message:
+                    err.message || "Some error occurred while retrieving tasks."
+            });
+        });
+}
