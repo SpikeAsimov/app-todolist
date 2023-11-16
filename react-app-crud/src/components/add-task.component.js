@@ -1,8 +1,7 @@
 import React, { Component } from "react";
-import { connect } from "react-redux";
-import { createTask } from "../actions/tasks";
+import TaskDataService from "../services/task.service";
 
-class AddTask extends Component {
+export default class AddTask extends Component {
     constructor(props) {
         super(props);
         this.onChangeTitle = this.onChangeTitle.bind(this);
@@ -32,26 +31,28 @@ class AddTask extends Component {
         });
     }
 
-    saveTutorial() {
-        const { title, description } = this.state;
+    saveTask() {
+        var data = {
+            title: this.state.title,
+            description: this.state.description
+        };
 
-        this.props
-            .createTask(title, description)
-            .then((data) => {
+        TaskDataService.create(data)
+            .then(response => {
                 this.setState({
-                id: data.id,
-                title: data.title,
-                description: data.description,
-                completed: data.completed,
+                    id: response.data.id,
+                    title: response.data.title,
+                    description: response.data.description,
+                    completed: response.data.completed,
 
-                submitted: true,
+                    submitted: true
+                });
+                console.log(response.data);
+            })
+            .catch(e => {
+                console.log(e);
             });
-            console.log(data);
-    })
-    .catch((e) => {
-        console.log(e);
-    });    
-  }
+        }
 
     newTask() {
         this.setState({
@@ -69,7 +70,7 @@ class AddTask extends Component {
             <div className="submit-form">
                 {this.state.submitted ? (
                     <div>
-                        <h4>Tou submitted successfully!</h4>
+                        <h4>You submitted successfully!</h4>
                         <button className="btn btn-success" onClick={this.newTask}>
                             Add
                         </button>
@@ -102,14 +103,12 @@ class AddTask extends Component {
                             />                            
                         </div>
 
-                        <button onClick={this.saveTask} className="btn btn-succes">
-                            Submt
+                        <button onClick={this.saveTask} className="btn btn-success">
+                            Submit
                         </button>
                     </div>
                 )}
             </div>
         );
-    }   
+    }
 }
-
-export default connect(null, { createTask })(AddTask);

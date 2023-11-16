@@ -1,7 +1,6 @@
 import React, { Component } from "react";
-import { connect } from "react-redux";
-import { updateTask, deleteTask } from "../actions/tasks";
 import TaskDataService from "../services/task.service";
+import { withRouter } from "../common/with-router";
 
 class Task extends Component {
     constructor(props) {
@@ -9,9 +8,9 @@ class Task extends Component {
         this.onChangeTitle = this.onChangeTitle.bind(this);
         this.onChangeDescription = this.onChangeDescription.bind(this);
         this.getTask = this.getTask.bind(this);
-        this.updateStatus = this.updateStatus.bind(this);
-        this.updateContent = this.updateContent.bind(this);
-        this.removeTask = this.removeTask.bind(this);
+        this.updateCompleted = this.updateCompleted.bind(this);
+        this.updateTask = this.updateTask.bind(this);
+        this.deleteTask = this.deleteTask.bind(this);
 
         this.state = {
             currentTask: {
@@ -26,7 +25,7 @@ class Task extends Component {
 
     
     componentDidMount() {
-        this.getTask(this.props.match.params.id);
+        this.getTask(this.props.router.params.id);
     }
 
     onChangeTitle(e) {
@@ -37,7 +36,7 @@ class Task extends Component {
                 currentTask: {
                     ...prevState.currentTask,
                     title: title,
-                },
+                }
             };
         });
     }
@@ -45,7 +44,7 @@ class Task extends Component {
     onChangeDescription(e) {
         const description = e.target.value;
 
-        this.setState((prevState) => ({
+        this.setState(prevState => ({
             currentTask: {
                     ...prevState.currentTask,
                     description: description,
@@ -55,19 +54,19 @@ class Task extends Component {
 
     getTask(id) {
         TaskDataService.get(id)
-            .then((response) => {
+            .then(response => {
                 this.setState({
                     currentTask: response.data,
                 });
                 console.log(response.data);
             })
-            .catch((e) => {
+            .catch(e => {
                 console.log(e);
             });
     }
 
 
-    updateStatus(status) {
+    updateCompleted(status) {
         var data = {
             id: this.state.currentTask.id,
             title: this.state.currentTask.title,
@@ -75,46 +74,44 @@ class Task extends Component {
             completed: status,
         };
 
-        this.props
-            .updateTask(this.state.currentTask.id, data)
-            .then((response) => {
-                console.log(response);
-                
-                this.setState((prevSate) => ({
+        TaskDataService.update(this.state.currentTask.id, data)
+            .then(response => {
+                this.setState(prevState => ({
                     currentTask: {
-                        ...prevSate.currentTask,
-                        completed: status,
-                    },
+                        ...prevState.currentTask,
+                        completed: status
+                    }
                 }));
-
-                this.setState({ message: "The status was updated successfully!"});
+                console.log(response.data);
             })
-            .catch((e) => {
-                console.log(e);
-            });
-
-    }
-
-    updateContent() {
-        this.props
-            .updateTask(this.state.currentTask.id, this.state.currentTask)
-            .then((response) => {
-                console.log(response);
-
-                this.setState({ message: "the task was updated successfully!"});
-            })
-            .catch((e) => {
+            .catch(e => {
                 console.log(e);
             });
     }
 
-    removeTask() {
-        this.props
-            .deleteTask(this.state.currentTask.id)
-            .then(() => {
-                this.props.history.push("/tasks");
+    updateTask() {
+        TaskDataService.update(
+            this.state.currentTask.id,
+            this.state.currentTask
+        )
+            .then(response => {
+                console.log(response.data);
+                this.setState({
+                    message: "The task was update successfully!"
+                });
             })
-            .catch((e) => {
+            .catch(e => {
+                console.log(e);
+            });
+    }
+
+    deleteTask() {
+        TaskDataService.delete(this.state.currentTask.id)
+            .then(response => {
+                console.log(response.data);
+                this.props.router.navigate('/tasks');                
+            })
+            .catch(e => {
                 console.log(e);
             });
     }
@@ -148,53 +145,55 @@ class Task extends Component {
                                     onChange={this.onChangeDescription}
                                 />
                             </div>
+
                             <div className="form-group">
                                 <label>
                                     <strong>Status</strong>
                                 </label>
                                 {currentTask.completed ? "Completed" : "Pending"}
                             </div>
+                        </form>
+
                             {currentTask.completed ? (
                                 <button
                                     className="badge badge-primary mr-2"
-                                    onClick={() => this.updateStatus(false)}
+                                    onClick={() => this.updateCompleted(false)}
                                 >
                                     UnCompleted
                                 </button>
                             ) : (
                                 <button
                                     className="badge badge-primary mr-2"
-                                    onClick={() => this.updateStatus(true)}
+                                    onClick={() => this.updateCompleted(true)}
                                 >
                                     Completed
                                 </button>
                             )}
+
                             <button
                                 className="badge badge-danger mr-2"
-                                onClick={this.removeTask}
+                                onClick={this.deleteTask}
                             >
                                 Delete
                             </button>
                             <button
                                 type="submit"
                                 className="badge badge-success"
-                                onClick={this.updateContent}
+                                onClick={this.updateTask}
                             >
                                 Update
                             </button>
-                            <p>{this.state.message}</p>
-                        </form>
-                    </div>
-                ) : (
-                    <div>
-                        <br />
-                        <p>Please click on a Task...</p>
-                    </div>
-                )}
-            </div>
-        );
-    }
-    
+                            <p>{this.state.message}</p>                        
+                        </div>
+                    ) : (
+                        <div>
+                            <br />
+                            <p>Please click on a Task...</p>
+                        </div>
+                    )}
+                </div>
+            );
+        }    
 }
 
-export default connect(null, { updateTask, deleteTask })(Task);
+export default withRouter(Task);

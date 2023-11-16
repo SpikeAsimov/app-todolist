@@ -1,26 +1,28 @@
 import React, { Component } from "react";
-import { connect } from "react-redux";
-import { retrieveTask, findTaskByTitle, deleteAllTasks } from "../actions/tasks";
+import TaskDataService from "../services/task.service";
 import { Link } from "react-router-dom";
 
-class TasksList extends Component {
+export default class TasksList extends Component {
     constructor(props) {
         super(props);
         this.onChangeSearchTitle = this.onChangeSearchTitle.bind(this);
-        this.refreshData = this.refreshData.bind(this);
+        this.retrieveTasks = this.retrieveTasks.bind(this);
+        this.refreshList = this.refreshList.bind(this);        
         this.setActivateTask = this.setActivateTask.bind(this);
-        this.findByTitle = this.findByTitle.bind(this);
         this.removeAllTasks = this.removeAllTasks.bind(this);
+        this.searchTitle = this.searchTitle.bind(this);
+        
 
         this.state = {
+            task: [],
             currentTask: null,
             currentIndex: -1,
-            searchTitle: "",
+            searchTitle: ""
         };        
     }
 
     componentDidMount() {
-        this.props.retrieveTask();
+        this.retrieveTasks();
     }
 
     onChangeSearchTitle(e) {
@@ -31,42 +33,63 @@ class TasksList extends Component {
         });
     }
 
-    refreshData() {
+    retrieveTasks() {
+        TaskDataService.getAll()
+            .then(response => {
+                this.setState({
+                    tasks: response.data
+                });
+                console.log(response.data);
+            })
+            .catch(e => {
+                console.log(e);
+            });
+    }
+
+    refreshList() {
+        this.retrieveTasks();
         this.setState({
             currentTask: null,
-            currentIndex: -1,
+            currentIndex: -1
         });
     }
 
     setActivateTask(task, index) {
         this.setState({
             currentTask: task,
-            currentIndex: index,
+            currentIndex: index
         });
     }
 
     removeAllTasks() {
-        this.props
-            .deleteAllTasks()
-            .then((response) => {
-                this.refreshData();
+        TaskDataService.deleteAll()
+            .then(response => {
+                console.log(response.data);
+                this.refreshList();
             })
-            .catch((e) => {
+            .catch(e => {
                 console.log(e);
             });
     }
 
-    findByTitle() {
-        this.refreshData();
-
-        this.props.findTaskByTitle(this.state.searchTitle);
+    searchTitle() {
+        TaskDataService.findByTitle(this.state.searchTitle)
+            .then(response => {
+                this.setState({
+                    tasks: response.data
+                });
+                console.log(response.data);
+            })
+            .catch(e => {
+                console.log(e);
+            });
     }
 
-    render() {
-        const { searchTitle, currentTask, currentIndex } = this.state;
-        const { tasks } = this.props;
 
-        return(
+    render() {
+        const { searchTitle, tasks, currentTask, currentIndex } = this.state;
+        
+        return (
             <div className="list row">
                 <div className="col-md-8">
                     <div className="input-group mb-3">
@@ -81,7 +104,7 @@ class TasksList extends Component {
                             <button
                                 className="btn btn-outline-secondary"
                                 type="button"
-                                onClick={this.findByTitle}
+                                onClick={this.searchTitle}
                             >
                                 Search
                             </button>
@@ -155,11 +178,3 @@ class TasksList extends Component {
         );
     }
 }
-
-const mapStateToProps = (state) => {
-    return {
-        tasks: state.tasks,
-    };
-};
-
-export default connect(mapStateToProps, { retrieveTask, findTaskByTitle, deleteAllTasks }) (TasksList);
