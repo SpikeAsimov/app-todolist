@@ -1,19 +1,76 @@
-.App {
-  text-align: center;
+:root {
+  --background-color: #FFF;
+  --primary-color: #3B82BF;
+  --secundary-color: #382F59;
+  --success-color: #39BF4D;
+  --warning-color: #F2EBD5;
+  --error-color: #BF2C53;
 }
 
-.list {
-  text-align: left;
-  max-width: 750px;
-  margin: auto;
+html {
+  width: 100%;
+  height: 100%;  
+}
+
+body {
+  height: 100%;
+  background-image: url("../public/resource/background.svg");
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/*BUTTON COLORS*/
+
+.is-primary {
+  background-color: var(--primary-color) !important;
+}
+
+.is-warning {
+  background-color: var(--warning-color) !important;
+}
+
+.is-error {
+  background-color: var(--error-color) !important;
+}
+
+.nes-container {
+  background-color: var(--background-color) !important;
+}
+
+/*CONTAINER*/
+
+.container-lg {
+  padding: 10vh;  
+}
+
+
+.container-lg div button {
+  margin: 2vh;
+}
+
+.list-group {  
+  justify-content: center;
+}
+
+.list-group li{
+  width: 100%;
+  height: 100%;
+  margin-bottom: 20px;  
+  
+}
+
+.message-list {
+  display: flex;
+  justify-content: center;
+  align-self: center;
+  margin: 2vh;
 }
 
 .submit-form {
-  max-width: 300px;
-  margin: auto;
+
 }
 
 .edit-form {
-  max-width: 300px;
-  margin: auto;
+
 }

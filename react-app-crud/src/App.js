@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Routes, Route, Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "nes.css/css/nes.min.css";
 import "./App.css";
 
 
@@ -16,7 +17,7 @@ class App extends Component {
       <div>
         <nav className="navbar navbar-expand navbar-dark bg-dark">
           <Link to={"/tasks"} className="navbar-brand">
-            Task - App
+            To Do List
           </Link>
           <div className="navbar-nav mr-auto">
             <li className="nav-item">
@@ -32,7 +33,7 @@ class App extends Component {
           </div>
         </nav>
 
-        <div className="container mt-3">
+        <div className="container-lg">
           <Routes>
             <Route path="/" element={ <TasksList/>} />
             <Route path="/tasks" element={<TasksList/>} />

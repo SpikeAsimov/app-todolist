@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import TaskDataService from "../services/task.service";
-import { Link } from "react-router-dom";
+import { Link, redirect } from "react-router-dom";
 
 export default class TasksList extends Component {
     constructor(props) {
@@ -90,36 +90,48 @@ export default class TasksList extends Component {
         const { searchTitle, tasks, currentTask, currentIndex } = this.state;
         
         return (
-            <div className="list row">
-                <div className="col-md-8">
-                    <div className="input-group mb-3">
+            <div className="row nes-container with-title is-centered">
+                <p className="title">
+                    To Do List</p>
+                <div className="col-lg-12">
+                    <div >
                         <input
                             type="text"
-                            className="form-control"
+                            className="nes-input"
                             placeholder="Search by title"
                             value={searchTitle}
                             onChange={this.onChangeSearchTitle}
-                        />
-                        <div className="input-group-append">
-                            <button
-                                className="btn btn-outline-secondary"
-                                type="button"
-                                onClick={this.searchTitle}
-                            >
-                                Search
-                            </button>
-                        </div>
+                        />                        
+                        <button
+                            className="nes-btn"
+                            type="button"
+                            onClick={this.searchTitle}
+                        >
+                            Search
+                        </button>
+                        <button
+                            className="nes-btn"
+                            type="button"
+                            onClick={this.refreshList}
+                        >
+                            Refresh
+                        </button>
+                        <button
+                            className="nes-btn is-success"
+                            type="button"                            
+                        >
+                         Add   
+                        </button>
                     </div>
                 </div>
-                <div className="col-md-6">
-                    <h4>Tasks List</h4>
+                <div className="col-lg-6">                    
 
                     <ul className="list-group">
                         {tasks &&
                             tasks.map((task, index) => (
                                 <li
                                     className={
-                                        "list-group-item " +
+                                        "nes-pointer nes-btn is-primary " +
                                         (index === currentIndex ? "active" : "")
                                     }
                                     onClick={() => this.setActivateTask(task, index)}
@@ -131,47 +143,66 @@ export default class TasksList extends Component {
                     </ul>
 
                     <button
-                        className="m-3 btn btn-sm btn-danger"
+                        type="button"
+                        className="nes-pointer nes-btn is-error"
                         onClick={this.removeAllTasks}
-                    >
+                        >
                         Remove All
                     </button>
-                </div>
-                <div className="col-md-6">
-                    {currentTask ? (
-                        <div>
-                            <h4>Task</h4>
-                            <div>
-                                <label>
-                                    <strong>Title:</strong>
-                                </label>{" "}
-                                {currentTask.title}
-                            </div>
-                            <div>
-                                <label>
-                                    <strong>Description:</strong>
-                                </label>{" "}
-                                {currentTask.description}
-                            </div>
-                            <div>
-                                <label>
-                                    <strong>Status:</strong>
-                                </label>{" "}
-                                {currentTask.completed ? "Completed" : "Pending"}
-                            </div>
 
-                            <Link
-                                to={"/tasks/" + currentTask.id}
-                                className="badge badge-warning"
-                            >
-                                Edit
-                            </Link>
-                        </div>
+
+                </div>
+                <div className="col-lg-6">
+                    {currentTask ? (                      
+                            <div className="nes-table-responsive">
+                                <table className="nes-table is-bordered">
+                                    <thead>
+                                    <tr>
+                                        <th colSpan={2}><strong>Title:</strong>
+                                        <label>{" "}</label>                                    
+                                        {currentTask.title}                                    
+                                        </th>                                    
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td><label>
+                                            <strong>Description:</strong>
+                                        </label>{" "}
+                                        {currentTask.description}</td>                                    
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label>
+                                                <strong>Status:</strong>
+                                            </label>{" "}
+                                            {currentTask.completed ? (
+                                                <i className="nes-icon is-large like" />
+                                                ) :
+                                                (  <i className="nes-icon is-large like is-empty" />
+                                                )}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <Link to={"/tasks/" + currentTask.id} href="#" className="nes-btn is-warning">
+                                                <span className="is-warning">Edit</span>
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                     ) : (
-                        <div>
-                            <br />
-                            <p>Please click on a Task...</p>
-                        </div>
+                            <section className="nes-container">
+                                <section className="message-list">
+                                    <section className="message -left">
+                                    <div className="nes-balloon from-left">
+                                        <p>Please click on a Task...</p>
+                                    </div>
+                                    </section>
+                                </section>
+                            </section>
                     )}
                 </div>
             </div>
